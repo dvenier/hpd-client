@@ -46,6 +46,11 @@ public class HPDSpecialtyModel implements Serializable {
         }
     }      
 
+    @Override
+    public String toString() {
+        return super.toString() + "[authorityOID=" + authorityOID + ", authorityName=" + authorityName + ", specialtyCode=" + specialtyCode + ", specialtyName=" + specialtyName + "]";
+    }
+    
     public String getAuthorityOID() {
         return authorityOID;
     }

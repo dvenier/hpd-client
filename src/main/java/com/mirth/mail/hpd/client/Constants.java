@@ -25,8 +25,8 @@ public class Constants {
     public static final String ENTITY_TYPE_ORG_RDN_OU          = "HCRegulatedOrganization";
     public static final String ENTITY_TYPE_INDIVIDUAL_RDN_OU   = "HCProfessional";
     public static final String ENTITY_TYPE_CREDENTIAL_RDN_OU   = "HPDCredential";
-    public static final String ENTITY_TYPE_RELATIONSHIP_RDN_OU = "Relationship";    
-    public static final String ENTITY_TYPE_SERVICE_RDN_OU      = "Service";     
+    public static final String ENTITY_TYPE_RELATIONSHIP_RDN_OU = "HPDProviderMembership";    
+    public static final String ENTITY_TYPE_SERVICE_RDN_OU      = "HPDElectronicService";     
      
     //Provider Directory Auth types
     public static final int    PROVIDER_DIR_AUTH_TYPE_NONE     = 0;

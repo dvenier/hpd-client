@@ -46,6 +46,11 @@ public class HPDContactModel implements Serializable {
         this.affiliatedOrgLDAPDn = affiliatedOrgLDAPDn;
     }    
 
+    @Override
+    public String toString() {
+        return super.toString() + "[contactTypeId=" + contactTypeId + ", contactAddress=" + contactAddress + ", affiliatedOrgId=" + affiliatedOrgId + ", affiliatedOrgName=" + affiliatedOrgName + ", affiliatedOrgLDAPDn=" + affiliatedOrgLDAPDn + "]";
+    }    
+    
     public String getAffiliatedOrgId() {
         return affiliatedOrgId;
     }

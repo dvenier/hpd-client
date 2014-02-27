@@ -44,6 +44,11 @@ public class HPDElectronicServiceModel extends HPDBaseModel {
         //Handle the certificate bytes later...
     }  
     
+    @Override
+    public String toString() {
+        return super.toString() + "[serviceId=" + serviceId + ", serviceAddress=" + serviceAddress + ", contentProfile=" + contentProfile + ", integrationProfile=" + integrationProfile + ", securityProfile=" + securityProfile + "]";
+    }
+    
     public String getServiceId() {
         return serviceId;
     }

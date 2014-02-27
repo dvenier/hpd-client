@@ -26,6 +26,7 @@ public class HPDAddressModel implements Serializable {
     public static String ADDRESS_TYPE_PRACTICE = "1";
     public static String ADDRESS_TYPE_MAILING = "2";
     public static String ADDRESS_TYPE_BILLING = "3";
+    public static String ADDRESS_TYPE_LEGAL = "4";
     
     private String addressTypeId;
     private String addressTypeLabel;
@@ -71,6 +72,11 @@ public class HPDAddressModel implements Serializable {
         }
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + "[addressTypeId=" + addressTypeId + ", addressLine1=" + addressLine1 + ", addressLine2=" + addressLine2 + ", locality=" + locality + ", state=" + state + ", postal=" + postal + "]";
+    }    
+    
     private void setAddrPart(String varName, String varValue) {
         varName = varName.trim();
         if (!StringUtils.isBlank(varValue)) {

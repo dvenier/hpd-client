@@ -48,6 +48,10 @@ public class HPDCredentialModel extends HPDBaseModel implements IHPDModel {
         //TODO:  Process renewelDate and issueDate
     }
     
+    @Override
+    public String toString() {
+        return super.toString() + "[name=" + name + ", number=" + number + ", type=" + type + ", status=" + status + ", id=" + id + "]";
+    }
 
     public String getId() {
         return id;

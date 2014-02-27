@@ -144,6 +144,11 @@ public class HPDEntityModel extends HPDBaseModel implements Serializable, Compar
         
      }
 
+    @Override
+    public String toString() {
+        return super.toString() + "[entityUID=" + entityUID + ", entityTypeId=" + entityTypeId + ", displayName=" + displayName + "]";
+    }
+    
     public String getEntityUID() {
         return entityUID;
     }

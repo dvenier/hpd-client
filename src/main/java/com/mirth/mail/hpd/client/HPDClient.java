@@ -159,7 +159,7 @@ public class HPDClient {
             hpdInstance.setPassword(rs.getString("auth_password"));
             hpdInstance.setCustomHPDRequestXSLT(rs.getString("custom_hpd_request_xslt"));
             hpdInstance.setRequestTimeoutMS(rs.getInt("request_timeout_ms"));
-            hpdInstance.setIsActive(rs.getInt("status_type_key") == MIRTH_MAIL_HPD_STATUS_ACTIVE_ID ? false : true);
+            hpdInstance.setIsActive(rs.getInt("status_type_key") == MIRTH_MAIL_HPD_STATUS_ACTIVE_ID);
             config.addInstance(hpdInstance);
         }
         rs.close();
@@ -464,29 +464,38 @@ public class HPDClient {
             String entityDN = node.getAttributes().getNamedItem("dn").getNodeValue();
             log.log(Level.FINE, "Found: {0}", entityDN);
             try {
-                //If the node is an Entity, then
-                if (entityDN.contains(Constants.ENTITY_TYPE_CREDENTIAL_RDN_OU)) {
-                    rde.getCredentials().add(new HPDCredentialModel(hpdInstanceModel, entityDN, node.getChildNodes()));
+                //If the node is an Credential, then let's consume that and add that to the our result
+                if (entityDN.toLowerCase().contains(Constants.ENTITY_TYPE_CREDENTIAL_RDN_OU.toLowerCase())) {
+                    HPDCredentialModel credential = new HPDCredentialModel(hpdInstanceModel, entityDN, node.getChildNodes());
+                    log.log(Level.FINE, "Found: new Credential {0}", credential);                    
+                    rde.getCredentials().add(credential);
                 }
-                if (entityDN.contains(Constants.ENTITY_TYPE_INDIVIDUAL_RDN_OU) || entityDN.contains(Constants.ENTITY_TYPE_ORG_RDN_OU)) {
-                    rde.getEntities().add(new HPDEntityModel(hpdInstanceModel, entityDN, node.getChildNodes()));
+                //If the node is an Individual or Org, then let's consume that and add that to the our result                
+                if (entityDN.toLowerCase().contains(Constants.ENTITY_TYPE_INDIVIDUAL_RDN_OU.toLowerCase()) || entityDN.contains(Constants.ENTITY_TYPE_ORG_RDN_OU.toLowerCase())) {
+                    HPDEntityModel entity = new HPDEntityModel(hpdInstanceModel, entityDN, node.getChildNodes());
+                    log.log(Level.FINE, "Found: new Entity {0}", entity);                           
+                    rde.getEntities().add(entity);
                 }
-                if (entityDN.contains(Constants.ENTITY_TYPE_RELATIONSHIP_RDN_OU)) {
-                    rde.getRelationships().add(new HPDOrgToProvRelationshipModel(hpdInstanceModel, entityDN, node.getChildNodes()));
-                }                
-                if (entityDN.contains(Constants.ENTITY_TYPE_SERVICE_RDN_OU)) {
-                    rde.getServices().add(new HPDElectronicServiceModel(hpdInstanceModel, entityDN, node.getChildNodes()));
+                //If the node is an Relationship, then let's consume that and add that to the our result                     
+                if (entityDN.toLowerCase().contains(Constants.ENTITY_TYPE_RELATIONSHIP_RDN_OU.toLowerCase())) {
+                    HPDOrgToProvRelationshipModel rel = new HPDOrgToProvRelationshipModel(hpdInstanceModel, entityDN, node.getChildNodes());
+                    log.log(Level.FINE, "Found: new Relationship {0}", rel);                        
+                    rde.getRelationships().add(rel);
+                }     
+                //If the node is an Relationship, then let's consume that and add that to the our result                
+                if (entityDN.toLowerCase().contains(Constants.ENTITY_TYPE_SERVICE_RDN_OU.toLowerCase())) {
+                    HPDElectronicServiceModel service = new HPDElectronicServiceModel(hpdInstanceModel, entityDN, node.getChildNodes());
+                    log.log(Level.FINE, "Found: new Service {0}", service);                     
+                    rde.getServices().add(service);
                 }
 
             } catch (UnexpectedLDAPObjectException lox) {
                 log.log(Level.WARNING, lox.getMessage());
             } catch (HPDObjectWithNoUIDException ux) {
                 log.log(Level.WARNING, ux.getMessage());
-            } catch (RuntimeException re) {
-                log.log(Level.WARNING, re.getMessage(), re);
             }
         }
-        log.info("Found " + rde.getTotalEntiesFound() + " LDAP entries");
+        log.log(Level.INFO, "Found {0} LDAP entries", rde.getTotalEntiesFound());
         return rde;
     }
 
@@ -576,7 +585,7 @@ public class HPDClient {
                     throw new UnexpectedHPDCallException("HPD call failed due to an unexpected HTTP statusCode. (HTTP-" + statusCode + ").", statusCode);
             }
             //get the response that came back from the remote HPD instance and do some cleanup on it if necessary
-            String batchResponse = normalizeBatchResponse(EntityUtils.toString(postResp.getEntity()));
+            String batchResponse = getNormalizedBatchResponse(EntityUtils.toString(postResp.getEntity()));
             log.log(Level.FINE, "DSML Response:" + batchResponse);
             
             //Now, DOM what came back and make sure we got some search results back
@@ -624,27 +633,27 @@ public class HPDClient {
         }
     }
 
-    private String normalizeBatchResponse(String batchResponse) {
-        log.log(Level.FINE, "Raw Batch Response \n{0}\n", batchResponse);
+    private String getNormalizedBatchResponse(String rawDSMLResponse) {
+        log.log(Level.FINE, "Raw Batch Response \n{0}\n", rawDSMLResponse);
 
         //HACK WARNING: If we get responses back where the knuckleheads are saying dsml:attribute versus dsml:attr, let's correct that
         //Standardize on a couple other things as well
-        batchResponse = batchResponse.replaceAll("<dsml:attribute", "<attr");
-        batchResponse = batchResponse.replaceAll("</dsml:attribute", "</attr");
-        batchResponse = batchResponse.replaceAll("<attribute", "<attr");
-        batchResponse = batchResponse.replaceAll("</attribute", "</attr");
+        rawDSMLResponse = rawDSMLResponse.replaceAll("<dsml:attribute", "<attr");
+        rawDSMLResponse = rawDSMLResponse.replaceAll("</dsml:attribute", "</attr");
+        rawDSMLResponse = rawDSMLResponse.replaceAll("<attribute", "<attr");
+        rawDSMLResponse = rawDSMLResponse.replaceAll("</attribute", "</attr");
 
-        batchResponse = batchResponse.replaceAll("<dsml:", "<");
-        batchResponse = batchResponse.replaceAll("</dsml:", "</");
+        rawDSMLResponse = rawDSMLResponse.replaceAll("<dsml:", "<");
+        rawDSMLResponse = rawDSMLResponse.replaceAll("</dsml:", "</");
 
         //HACK: If we received a <soap-env> wrapper around the response, strip it off.  Need better way to do this
         //Later we can DOM the doc and grab the inner response and then turn that back into the batch response
-        if (batchResponse.contains("<soap-env")) {
-            if (batchResponse.indexOf("<batchResponse") > 0) {
-                batchResponse = batchResponse.substring(batchResponse.indexOf("<batchResponse"), batchResponse.indexOf("</batchResponse>") + 16);
+      if (rawDSMLResponse.toLowerCase().contains("<soap-env") || rawDSMLResponse.toLowerCase().contains("soap-envelope")) {
+            if (rawDSMLResponse.indexOf("<batchResponse") > 0) {
+                rawDSMLResponse = rawDSMLResponse.substring(rawDSMLResponse.indexOf("<batchResponse"), rawDSMLResponse.indexOf("</batchResponse>") + 16);
             }
         }
-        log.log(Level.FINE, "Normalized Batch Response \n{0}\n", batchResponse);
-        return batchResponse;
+        log.log(Level.FINE, "Normalized Batch Response \n{0}\n", rawDSMLResponse);
+        return rawDSMLResponse;
     }
 }
