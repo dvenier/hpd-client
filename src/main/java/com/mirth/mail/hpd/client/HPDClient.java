@@ -53,8 +53,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -104,6 +106,14 @@ public class HPDClient {
     public HPDClient(InputStream configStream) {
         XStream x = new XStream();
         setConfig((HPDClientConfig) x.fromXML(configStream));
+    }
+
+    public HPDClient(InputStream configStream, String logPath, Level logLevel) throws IOException {
+        this(configStream);
+        log.setLevel(logLevel);
+        FileHandler handler = new FileHandler(logPath, true);
+        handler.setFormatter(new SimpleFormatter());
+        log.addHandler(handler);
     }
 
     //Takes a JDBC Connection URL, username and password and initializes the client based on the connection created
