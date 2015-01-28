@@ -30,6 +30,8 @@ public class HPDClientConfig {
             + "   <soap-env:Header> "
             + "      <a:Action soap-env:mustUnderstand='0'>urn:ihe:iti:hpd:2010:ProviderInformationQueryRequest</a:Action> "
             + "      <a:MessageID soap-env:mustUnderstand='0'>urn:uuid:%s</a:MessageID> "
+            + "       <a:ReplyTo><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo> "
+            + "       <a:To soap-env:mustUnderstand='1'>%s</a:To> "
             + "   </soap-env:Header>"
             + "   <soap-env:Body> "
             + "   <batchRequest xmlns='urn:oasis:names:tc:DSML:2:0:core' requestID='%s'> "
@@ -88,7 +90,7 @@ public class HPDClientConfig {
 
     public void setSoapRequestTemplate(String soapRequestTemplate) {
         this.soapRequestTemplate = soapRequestTemplate;
-    }    
+    }
 
     public Integer getDefaultRequestTimeoutMS() {
         return defaultRequestTimeoutMS;
